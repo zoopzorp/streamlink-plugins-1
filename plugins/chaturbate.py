@@ -17,6 +17,7 @@ class Chaturbate(Plugin):
         "broadcaster_username": str,
         "broadcaster_gender": str,
         "hls_source": str,
+        "cmaf_edge": validate.any(None, bool),
     })
 
     def get_title(self):
@@ -57,7 +58,11 @@ class Chaturbate(Plugin):
         self.logger.info("Stream status: {0}".format(data["room_status"]))
 
         if (data["room_status"] == "public" and data["hls_source"]):
-            for s in HLSStream.parse_variant_playlist(self.session, data["hls_source"]).items():
+            hls_source = data["hls_source"]
+            if data["cmaf_edge"]:
+                hls_source = hls_source.replace("playlist.m3u8", "playlist_sfm4s.m3u8")
+                hls_source = hls_source.replace("live-hls", "live-c-fhls")
+            for s in HLSStream.parse_variant_playlist(self.session, hls_source).items():
                 yield s
 
 __plugin__ = Chaturbate
